@@ -15,10 +15,10 @@
 
 This deliverable is the reporting layer built on top of the `mart_finance` data mart produced in Phase 6. The dashboard was built in AWS QuickSight and connects live to:
 
-- `mart_finance.fact_revenue_by_month` — joined to `dim_month`, `dim_product`, and `dim_store` (one dataset)
+- `mart_finance.fact_revenue_by_month` — joined to `dim_month`, `dim_product`, and `dim_store` (one dataset). A calculated column, `month_start_date`, is added in the QuickSight dataset to convert the integer `month_id` (YYYYMM) into a real date for time-based calculations.
 - `mart_finance.order_fulfilment_snapshot` — used on its own, since it sits at a different grain (one row per order, not per product/store/month)
 
-All 5 visuals below live on a single dashboard sheet, titled **"NovaMart Finance Dashboard — Reporting Layer."**
+All 6 visuals below live on a single dashboard sheet, titled **"NovaMart Finance Dashboard — Reporting Layer."**
 
 > Dashboard link: https://us-east-1.quicksight.aws.amazon.com/sn/account/JABU/dashboards/15660871-8eb6-4e34-96ac-03feeb769d14/views/b3e98aff-cd4f-4549-b89f-fde6a0ad9cf5
 
@@ -28,7 +28,7 @@ All 5 visuals below live on a single dashboard sheet, titled **"NovaMart Finance
 
 Phase 1 originally proposed five business questions. Two of them (month-to-date revenue by channel, and channel growth year-over-year) turned out not to be answerable once we reached the reporting layer, because our Phase 1 dataset-mapping note had already flagged that the Olist source data has no native channel split, and Phase 5's ETL hardcodes `channel = 'Website'` for every row as a documented assumption rather than deriving it. Rather than publish two visuals that can't actually show what they claim to, we reframed the dashboard around the five business questions our data *can* answer, drawn from the same underlying grain (revenue, profit, product, location, fulfilment time) as the original set.
 
-The five questions this dashboard answers:
+The five questions this dashboard answers (plus a sixth visual, Year-to-Date Revenue, which supports Q4 and demonstrates the Ch. 4 §3 principle):
 
 1. Which products are most profitable, and which product categories should we invest in or cut?
 2. Which store locations ("regions") generate the most revenue?
@@ -64,6 +64,12 @@ Identifies top and bottom performing product categories.
 **Answers:** Q5 — *how long does order fulfilment take on average, and is it fast enough to be competitive?*
 This is the required visual built on the accumulating snapshot fact table.
 
+### Visual 6 — Year-to-Date Revenue
+**Chart type:** Line chart, one panel per year (`month_start_date` by Month on X-axis, `year` as small multiples, `ytd_revenue` as value)
+**Calculation:** `runningSum(sum({revenue}), [{month_start_date} ASC], [{year}])` — a calculated field in the QuickSight analysis, restarting at zero each year
+**Answers:** Q4 — *how is revenue growing within each year?*
+This is the required Year-to-Date calculation built in the BI tool. No YTD or MTD column exists anywhere in the warehouse (Ch. 4 §3): a cumulative total depends on which period the viewer picks, so it is calculated on demand from the additive `revenue` measure. QuickSight's built-in `periodToDateSum` function measures from the current date, which does not work for our 2016–2018 data, so a running sum partitioned by year is used instead.
+
 ---
 
 ## 3. Dashboard screenshots
@@ -92,3 +98,15 @@ This is the required visual built on the accumulating snapshot fact table.
 **Question answered:** How long does order fulfilment take on average, and is it fast enough to be competitive?
 
 ![Average Days to Deliver](screenshots/1_days_to_deliver.png)
+
+### Visual 6 — Year-to-Date Revenue
+**Question answered:** How is revenue accumulating within each year?
+
+![Year-to-Date Revenue](screenshots/6_ytd_revenue.png)
+
+---
+
+## 4. Notes on reading the dashboard
+
+- Several charts have scroll bars or range sliders. These only change which part of the data is visible and do not filter it. The total revenue across the full dataset is 13,591,643.7.
+- The last month in the data (Sep 2018) shows a sharp drop to near zero in the monthly trend chart. This appears to be a partial month in the source Olist data rather than a real collapse in sales.

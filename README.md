@@ -49,7 +49,7 @@ No Year-to-Date or Month-to-Date column is stored anywhere in the warehouse (Ch.
 
 ## 6. Reporting Layer
 
-Built in **AWS QuickSight**, connected live to `mart_finance`. Five visuals answering the dashboard's business questions, including a non-additive profit-margin ratio and a visual built on the accumulating snapshot. Full writeup, screenshots, and business-question mapping in `dashboard/README.md` (also delivered as `dashboard/README.pdf`).
+Built in **AWS QuickSight**, connected live to `mart_finance`. Six visuals answering the dashboard's business questions, including a non-additive profit-margin ratio, a Year-to-Date revenue visual calculated in QuickSight, and a visual built on the accumulating snapshot. Full writeup, screenshots, and business-question mapping in `dashboard/README.md` (also delivered as `dashboard/README.pdf`).
 
 ## 7. How to Run This Project
 
